@@ -1,0 +1,58 @@
+name: evals
+
+# Eval gates run on every push and pull request. ``evals.cli run`` exits non-zero
+# when any gate in the config fails, so a regression blocks the merge — this is
+# the enforcement half of the harness (the metrics are only useful if CI acts on
+# them).
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref so a fast fix doesn't wait on a stale job.
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eval-gates:
+    runs-on: ubuntu-latest
+    env:
+      # Hermetic: the CI config forces the stub LLM + heuristic judge, so no
+      # ANTHROPIC_API_KEY is required and no network calls are made.
+      EVAL_DB_URL: sqlite:///./evals_ci.db
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      # Each suite is a separate step so a failure names the gate that broke.
+      - name: Eval — smoke
+        run: python -m evals.cli run --suite smoke --config configs/ci.yaml
+
+      - name: Eval — adversarial
+        run: python -m evals.cli run --suite adversarial --config configs/ci.yaml
+
+      - name: Eval — regression
+        run: python -m evals.cli run --suite regression --config configs/ci.yaml
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: evals_ci.db
+          if-no-files-found: ignore
