@@ -1,0 +1,39 @@
+# Eval run configuration — CI (offline).
+#
+# CI must be hermetic: no API key, no network. This config pins the deterministic
+# stub LLM + heuristic judge so the smoke/regression/adversarial suites run the
+# same way on every pull request and gates are reproducible.
+#
+# Gate thresholds are set just below the current stub baseline on the v0 golden
+# set. They are intentionally a floor, not a target: they catch a *regression*
+# (a dropped escalation, a broken classifier, a crash) while tolerating a few
+# relabelled items. Tighten them as the golden set grows and the real-model
+# configs (``configs/v1.yaml``) become the release gate.
+name: ci
+dataset_version: v0
+
+pipeline:
+  prompt_version: v1
+  retrieval_k: 5
+  dedupe_threshold: 0.92
+  force_stub_llm: true
+
+models:
+  classify: claude-3-5-haiku-latest
+  decide: claude-3-5-sonnet-latest
+  draft: claude-3-5-sonnet-latest
+  judge: claude-3-5-sonnet-latest
+
+judge:
+  # Heuristic = deterministic rubric-lite, so CI needs no judge model call.
+  force_heuristic: true
+
+gates:
+  # Missing an escalation is the costly error, so this stays high.
+  escalation_recall: 0.85
+  auto_resolve_precision: 0.95
+  decision_accuracy: 0.55
+  classification_accuracy: 0.50
+  judge_pass_rate: 0.90
+  max_cost_usd: 5.0
+  max_error_rate: 0.05

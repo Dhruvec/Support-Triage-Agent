@@ -1,0 +1,43 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# env
+.env
+.env.production
+*.local
+
+# aws deployment state + generated secrets (infra/aws/provision.sh)
+infra/aws/.outputs.env
+infra/aws/.secrets.env
+
+# tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# data / artifacts
+*.db
+*.sqlite
+*.sqlite3
+artifacts/
+evals/results/
+evals/artifacts/
+infra/load/results/
+infra/aws/.outputs.env
+infra/aws/.secrets.env
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+*.log

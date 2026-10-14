@@ -1,0 +1,60 @@
+# ---------------------------------------------------------------------------
+# Production stack for an EXISTING EC2 host (+ RDS + ElastiCache).
+#
+# Unlike docker-compose.prod.yml (which pulls a prebuilt image from ECR), this
+# file BUILDS the image from this checkout on the host, so no ECR repo and no
+# local Docker on your laptop are required.
+#
+#   docker compose -f docker-compose.host.yml --env-file .env up -d --build
+#
+# Postgres and Redis are managed AWS services - there are NO local datastore
+# services here. All connection strings and secrets come from `.env`
+# (see infra/host/env.example).
+#
+# Security posture: `api` publishes no host port; `nginx` is the only public
+# surface and it 404s the unauthenticated /internal/worker and
+# /tickets/{id}/approve routes.
+# ---------------------------------------------------------------------------
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: triage-agent:local
+    env_file: .env
+    environment:
+      TRIAGE_API_URL: http://api:8000
+    expose:
+      - "8000"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: triage-agent:local
+    command: arq apps.worker.main.WorkerSettings
+    env_file: .env
+    environment:
+      TRIAGE_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,0 +1,34 @@
+# Eval run configuration — v1.
+#
+# Offline first: the stub LLM + heuristic judge mean this config runs in CI with
+# no API key and no network, so the smoke/regression/adversarial suites can gate
+# every pull request. Swap `force_stub_llm`/`judge.force_heuristic` to false and
+# provide ANTHROPIC_API_KEY to run the same suites against real models.
+name: v1
+dataset_version: v0
+
+pipeline:
+  prompt_version: v1
+  retrieval_k: 5
+  dedupe_threshold: 0.92
+  force_stub_llm: true
+
+# Model routing. Recorded in the run snapshot for reproducibility.
+models:
+  classify: claude-3-5-haiku-latest
+  decide: claude-3-5-sonnet-latest
+  draft: claude-3-5-sonnet-latest
+  judge: claude-3-5-sonnet-latest
+
+judge:
+  # Heuristic = deterministic rubric-lite, for offline CI.
+  force_heuristic: true
+
+gates:
+  escalation_recall: 0.90        # missing an escalation is the costly error
+  auto_resolve_precision: 0.85   # never claim to have solved without a human
+  decision_accuracy: 0.75
+  classification_accuracy: 0.70
+  judge_pass_rate: 0.75
+  max_cost_usd: 5.0
+  max_error_rate: 0.05
