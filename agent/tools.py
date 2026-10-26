@@ -17,7 +17,7 @@ enforcement point for the "risky actions require a human" rule.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Protocol
 
 from agent.config import Settings, get_settings
@@ -47,7 +47,9 @@ class ToolClient(Protocol):
 
     # --- ticketing-mcp (read) ---
     def get_ticket(self, ticket_id: str) -> dict: ...
-    def list_similar_tickets(self, tenant_id: str, embedding: list[float], k: int = 5) -> list[dict]: ...
+    def list_similar_tickets(
+        self, tenant_id: str, embedding: list[float], k: int = 5
+    ) -> list[dict]: ...
 
     # --- kb-mcp ---
     def search_articles(self, tenant_id: str, query: str, k: int = 5) -> RetrievalResult: ...
@@ -125,7 +127,9 @@ class InProcessToolClient(_Logged):
         self._record("get_ticket", t, ticket_id, result)
         return result
 
-    def list_similar_tickets(self, tenant_id: str, embedding: list[float], k: int = 5) -> list[dict]:
+    def list_similar_tickets(
+        self, tenant_id: str, embedding: list[float], k: int = 5
+    ) -> list[dict]:
         t = self._t()
         from sqlalchemy import select
 
@@ -306,9 +310,13 @@ class MCPToolClient(_Logged):
     def get_ticket(self, ticket_id: str) -> dict:
         return self._call("ticketing", "get_ticket", {"ticket_id": ticket_id})
 
-    def list_similar_tickets(self, tenant_id: str, embedding: list[float], k: int = 5) -> list[dict]:
+    def list_similar_tickets(
+        self, tenant_id: str, embedding: list[float], k: int = 5
+    ) -> list[dict]:
         return self._call(
-            "ticketing", "list_similar_tickets", {"tenant_id": tenant_id, "embedding": embedding, "k": k}
+            "ticketing",
+            "list_similar_tickets",
+            {"tenant_id": tenant_id, "embedding": embedding, "k": k},
         )
 
     def search_articles(self, tenant_id: str, query: str, k: int = 5) -> RetrievalResult:

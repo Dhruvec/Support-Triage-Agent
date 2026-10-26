@@ -23,10 +23,9 @@ import uuid
 from dataclasses import asdict, dataclass, field
 
 from agent.config import get_settings
-from agent.corpus import kb_article_id
+from agent.corpus import TENANT_ID, kb_article_id
 from agent.orchestrator import Orchestrator, PipelineConfig
 from agent.schemas import IngestTicket
-from agent.corpus import TENANT_ID
 from evals.config import EvalConfig, GateThresholds, load_config
 from evals.dataset import EvalItem, load_items
 from evals.judges.rubric import RubricJudge
@@ -211,7 +210,9 @@ def run_suite(
             "decision": pred_decision,
             "escalate": pred_escalate,
             "escalation_reason": state.escalation_reason,
-            "retrieved_ids": [a.article_id for a in state.retrieval.articles] if state.retrieval else [],
+            "retrieved_ids": (
+                [a.article_id for a in state.retrieval.articles] if state.retrieval else []
+            ),
             "draft": state.draft.body if state.draft else None,
             "guardrails_passed": state.guardrails.passed if state.guardrails else None,
             "pending_actions": len(state.act.pending) if state.act else 0,
@@ -265,8 +266,12 @@ def run_suite(
 
         passed_checks = {
             "escalate_ok": pred_escalate == expected["escalate"],
-            "decision_ok": (item.expected.decision is None or pred_decision == item.expected.decision),
-            "category_ok": (item.expected.category is None or actual["category"] == item.expected.category),
+            "decision_ok": (
+                item.expected.decision is None or pred_decision == item.expected.decision
+            ),
+            "category_ok": (
+                item.expected.category is None or actual["category"] == item.expected.category
+            ),
             "guardrails_ok": state.guardrails.passed if state.guardrails else True,
             "no_fatal_error": state.escalation_reason is None
             or not state.escalation_reason.startswith("pipeline_failure"),

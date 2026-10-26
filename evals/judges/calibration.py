@@ -12,7 +12,7 @@ def cohens_kappa(a: list[int], b: list[int]) -> float:
     n = len(a)
     labels = set(a) | set(b)
     po = sum(1 for x, y in zip(a, b, strict=False) if x == y) / n
-    pe = sum((a.count(l) / n) * (b.count(l) / n) for l in labels)
+    pe = sum((a.count(lbl) / n) * (b.count(lbl) / n) for lbl in labels)
     if pe == 1.0:
         return 1.0
     return (po - pe) / (1 - pe)
@@ -52,9 +52,13 @@ def _interpret(kappa: float) -> str:
     return "almost perfect"
 
 
-def agreement_report(judge_scores: list[float], human_scores: list[float], threshold: float = 3.5) -> AgreementReport:
+def agreement_report(
+    judge_scores: list[float], human_scores: list[float], threshold: float = 3.5
+) -> AgreementReport:
     j = binarise(judge_scores, threshold)
     h = binarise(human_scores, threshold)
     raw = sum(1 for x, y in zip(j, h, strict=False) if x == y) / max(len(j), 1)
     kappa = cohens_kappa(j, h)
-    return AgreementReport(n=len(j), raw_agreement=raw, kappa=kappa, interpretation=_interpret(kappa))
+    return AgreementReport(
+        n=len(j), raw_agreement=raw, kappa=kappa, interpretation=_interpret(kappa)
+    )

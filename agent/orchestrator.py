@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from agent.config import Settings, get_settings
@@ -134,7 +134,7 @@ class DBRecorder:
                 run.total_cost_usd = sum(st.cost_usd for st in stages)
                 run.total_tokens = sum(st.tokens for st in stages)
                 run.latency_ms = sum(st.latency_ms or 0 for st in stages)
-                run.finished_at = datetime.now(timezone.utc)
+                run.finished_at = datetime.now(UTC)
 
     def record_pending(self, state: PipelineState, action: PlannedAction) -> None:
         from apps.api.db import session_scope
@@ -206,7 +206,7 @@ class Orchestrator:
         state = PipelineState(
             ticket_id=ticket.idempotency_key,
             tenant_id=ticket.tenant_id,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         run_id = self.recorder.start_run(state, self.config.snapshot())
         fatal_error: str | None = None
@@ -277,7 +277,9 @@ class Orchestrator:
         # --- Stage 5: retrieve (kb-mcp hybrid) ---
         t = time.perf_counter()
         try:
-            retrieval = self.tools.search_articles(ticket.tenant_id, body, k=self.config.retrieval_k)
+            retrieval = self.tools.search_articles(
+                ticket.tenant_id, body, k=self.config.retrieval_k
+            )
         except Exception as exc:  # noqa: BLE001
             self.recorder.record_stage(
                 run_id, "retrieve", {}, latency_ms=(time.perf_counter() - t) * 1000,

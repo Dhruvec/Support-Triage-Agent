@@ -11,7 +11,7 @@ Two tables back the harness:
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     JSON,
@@ -24,13 +24,13 @@ from sqlalchemy import (
     create_engine,
 )
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, sessionmaker, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from agent.config import get_settings
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class EvalBase(DeclarativeBase):

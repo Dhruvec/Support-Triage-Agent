@@ -15,7 +15,7 @@ Design notes
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -34,7 +34,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from agent.config import get_settings
-from agent.taxonomy import ActionStatus, Decision, RunStatus
+from agent.taxonomy import ActionStatus, RunStatus
 
 _settings = get_settings()
 # JSONB on Postgres, falls back to JSON elsewhere (e.g. SQLite in tests).
@@ -47,7 +47,7 @@ def _uuid() -> str:
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Base(DeclarativeBase):

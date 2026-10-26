@@ -14,7 +14,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from agent.embeddings import HashingEmbedder
-from agent.schemas import RetrievedArticle, RetrievalResult
+from agent.schemas import RetrievalResult, RetrievedArticle
 
 _TOKEN = re.compile(r"[a-z0-9]+")
 

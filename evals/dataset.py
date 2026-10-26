@@ -8,9 +8,10 @@ prevents eval leakage.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Literal
 
 DATASETS_DIR = Path(__file__).resolve().parent / "datasets"
 
@@ -31,7 +32,7 @@ class Expected:
     article_ids: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "Expected":
+    def from_dict(cls, d: dict) -> Expected:
         known = {f for f in cls.__dataclass_fields__}
         return cls(**{k: v for k, v in d.items() if k in known})
 

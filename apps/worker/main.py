@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import hashlib
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 from arq import Retry, create_pool
@@ -111,7 +111,7 @@ def _dead_letter(job_id: str, payload: dict, error: str, attempts: int) -> None:
 
 
 async def startup(ctx: dict) -> None:
-    ctx["started_at"] = datetime.now(timezone.utc).isoformat()
+    ctx["started_at"] = datetime.now(UTC).isoformat()
 
 
 async def shutdown(ctx: dict) -> None:

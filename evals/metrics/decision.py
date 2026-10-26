@@ -61,7 +61,6 @@ def compute(pairs: list[tuple[str, bool, bool, str]]) -> DecisionMetrics:
 
     # auto-resolve precision/recall (positive class = decided auto_resolve)
     ar_tp = sum(1 for _, g, p, d in pairs if (not g) and d == "auto_resolve" and (not p))
-    ar_fp = sum(1 for _, g, p, d in pairs if g and d == "auto_resolve")
     ar_total_pred = sum(1 for _, _, _, d in pairs if d == "auto_resolve")
     ar_total_gold = sum(1 for _, g, p, _ in pairs if not g and not p)
     ar_precision = ar_tp / ar_total_pred if ar_total_pred else 1.0

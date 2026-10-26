@@ -165,8 +165,6 @@ class StubClient(LLMClient):
         model: str,
         max_tokens: int = 1024,
     ) -> Completion:
-        from agent import taxonomy as tx
-
         handler = _STUB_HANDLERS.get(schema.__name__)
         payload = handler(user) if handler else {}
         parsed = schema.model_validate(payload)
@@ -246,7 +244,8 @@ def _stub_decide(user: str) -> dict:
     risk: list[str] = []
     if any(k in low for k in ["refund", "money back", "reimburse"]):
         risk.append(RiskTopic.REFUND.value)
-    if any(k in low for k in ["change my email", "close my account", "delete account", "change plan"]):
+    account_kws = ["change my email", "close my account", "delete account", "change plan"]
+    if any(k in low for k in account_kws):
         risk.append(RiskTopic.ACCOUNT_CHANGE.value)
     if any(k in low for k in ["lawyer", "legal", "sue", "attorney", "gdpr"]):
         risk.append(RiskTopic.LEGAL.value)

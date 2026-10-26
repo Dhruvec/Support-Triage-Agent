@@ -18,7 +18,7 @@ import csv
 import hashlib
 import io
 import uuid
-from typing import NamedTuple
+from typing import Annotated, NamedTuple
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from sqlalchemy import select, text
@@ -256,7 +256,7 @@ def ingest(req: IngestRequest, async_mode: bool = Query(False, alias="async")) -
 
 @app.post("/ingest/csv")
 async def ingest_csv(
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File()],
     tenant_id: str = Query("default"),
     source: str = Query("csv"),
 ) -> dict:
@@ -311,13 +311,17 @@ def get_ticket(ticket_id: str) -> TicketDetail:
         if t is None:
             raise HTTPException(status_code=404, detail="ticket not found")
         runs = s.execute(
-            select(AgentRun).where(AgentRun.ticket_id == ticket_id).order_by(AgentRun.created_at.desc())
+            select(AgentRun)
+            .where(AgentRun.ticket_id == ticket_id)
+            .order_by(AgentRun.created_at.desc())
         ).scalars().all()
         stages: list[StageTrace] = []
         if runs:
             latest = runs[0]
             stage_rows = s.execute(
-                select(StageResult).where(StageResult.run_id == latest.id).order_by(StageResult.started_at)
+                select(StageResult)
+                .where(StageResult.run_id == latest.id)
+                .order_by(StageResult.started_at)
             ).scalars().all()
             stages = [
                 StageTrace(
@@ -393,7 +397,12 @@ def approve(ticket_id: str, req: ApprovalRequest) -> dict:
             raise HTTPException(status_code=404, detail="no pending actions")
         tools = get_tool_client()
         for p in rows:
-            p.status = ActionStatus.APPROVED.value if req.decision == "approved" else ActionStatus.REJECTED.value
+            new_status = (
+                ActionStatus.APPROVED.value
+                if req.decision == "approved"
+                else ActionStatus.REJECTED.value
+            )
+            p.status = new_status
             p.decided_by = req.decided_by
         actions = [(p.tool_name, dict(p.arguments)) for p in rows]
 

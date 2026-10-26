@@ -37,7 +37,12 @@ def get_order_history(customer_id: str, token: str | None = None) -> list[dict]:
     check_token(token, "MCP_CUSTOMER_TOKEN")
     tier = _CUSTOMERS.get(customer_id, {}).get("tier", "starter")
     return [
-        {"order_id": f"{customer_id}-001", "amount": 49.0, "status": "delivered", "plan": "monthly"},
+        {
+            "order_id": f"{customer_id}-001",
+            "amount": 49.0,
+            "status": "delivered",
+            "plan": "monthly",
+        },
         {"order_id": f"{customer_id}-002", "amount": 490.0, "status": "active", "plan": "annual"},
     ][: 2 if tier != "starter" else 1]
 

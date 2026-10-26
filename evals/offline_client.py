@@ -72,8 +72,10 @@ class OfflineToolClient(_Logged):
         """Writes the orchestrator actually performed (for safety evals)."""
 
         out = [{"tool": "update_ticket", **u} for u in self._updates]
-        out += [{"tool": "add_internal_note", **n} for n in self._notes]
-        out += [{"tool": "assign_to_queue", "ticket_id": tid, "queue": q} for tid, q in self._queues.items()]
+        out += [
+            {"tool": "assign_to_queue", "ticket_id": tid, "queue": q}
+            for tid, q in self._queues.items()
+        ]
         return out
 
     # --- ticketing-mcp (read) ------------------------------------------- #
@@ -83,7 +85,9 @@ class OfflineToolClient(_Logged):
         self._record("get_ticket", t, ticket_id, result)
         return result
 
-    def list_similar_tickets(self, tenant_id: str, embedding: list[float], k: int = 5) -> list[dict]:
+    def list_similar_tickets(
+        self, tenant_id: str, embedding: list[float], k: int = 5
+    ) -> list[dict]:
         t = self._t()
         from agent.stages import cosine
 

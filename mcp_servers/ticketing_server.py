@@ -44,7 +44,9 @@ def get_ticket(ticket_id: str, token: str | None = None) -> dict:
 
 
 @mcp.tool()
-def list_similar_tickets(tenant_id: str, ticket_id: str, k: int = 5, token: str | None = None) -> list[dict]:
+def list_similar_tickets(
+    tenant_id: str, ticket_id: str, k: int = 5, token: str | None = None
+) -> list[dict]:
     """Return open tickets most similar to the given ticket (dedupe support)."""
 
     check_token(token, "MCP_TICKETING_TOKEN")
